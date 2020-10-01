@@ -1,0 +1,374 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Point</title>
+  </head>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    body {
+      overflow: hidden;
+      font-family: "Roboto", sans-serif;
+    }
+
+    #start,
+    #game,
+    #end,
+    #level {
+      font-size: 60px;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #start {
+      background-color: lightcoral;
+    }
+
+    #game {
+      background-color: lightseagreen;
+      display: none;
+    }
+
+    #end {
+      background-color: lightskyblue;
+      display: none;
+    }
+    #level {
+      background-color: lightskyblue;
+      display: none;
+    }
+
+    .container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+    }
+
+    button {
+      display: inline-block;
+      padding: 15px 20px;
+      font-size: 24px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      outline: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    input {
+      padding: 15px 20px;
+      font-size: 24px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      outline: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    input[type="radio"] {
+      margin-top: 30px;
+    }
+    label {
+      font-size: 23px;
+      cursor: pointer;
+    }
+    input[type="radio"]:checked + label {
+      color: red;
+    }
+  </style>
+  <body>
+    <div id="start">
+      <div class="container">
+        <h1>Bắt đầu Game</h1>
+        <div class="text-center">
+          <input type="text" placeholder="Nhập tên người chơi" id="nameUser" />
+          <button id="btn-start" onclick="getName()">Chơi game</button>
+        </div>
+      </div>
+    </div>
+    <div id="level">
+      <div class="container">
+        <h2 id="greet">Xin chào</h2>
+        <div>Chọn cấp độ chơi</div>
+        <input type="radio" value="easy" name="level" id="easy" />
+        <label for="easy">Dễ</label> <br />
+        <input type="radio" value="medium" name="level" id="medium" />
+        <label for="medium">Trung bình</label>
+        <br />
+        <input type="radio" value="hard" name="level" id="hard" />
+        <label for="hard">Khó</label>
+        <br />
+        <button id="btn_play">Vào game</button>
+      </div>
+    </div>
+    <div id="game">
+      <div class="container">
+        <h2>Chơi Game</h2>
+        <canvas id="canvas"></canvas>
+        <!-- Đặt thẻ canvas tại đây
+            <canvas id="canvas"></canvas> -->
+      </div>
+    </div>
+    <div id="end">
+      <div class="container">
+        <h1>Kết thúc Game</h1>
+        <div class="text-center">
+          <button id="btn-restart">Chơi lại</button>
+          <button id="btn-reload">Thoát game</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const startGame = document.getElementById("start");
+      const game = document.getElementById("game");
+      const endGame = document.getElementById("end");
+      const level = document.getElementById("level");
+
+      const btn_start = document.getElementById("btn-start");
+      const btn_restart = document.getElementById("btn-restart");
+      const btn_reload = document.getElementById("btn-reload");
+      const btn_play = document.getElementById("btn_play");
+
+      const canvas = document.getElementById("canvas");
+      canvas.width = 1000;
+      canvas.height = 400;
+      canvas.style.backgroundColor = "white";
+      canvas.style.border = "2px solid";
+      const ctx = canvas.getContext("2d");
+
+      function getName() {
+        let nameUser = document.getElementById("nameUser").value;
+        if (nameUser == "") {
+          alert("Vui lòng nhập tên");
+        } else {
+          startGame.style.display = "none";
+          level.style.display = "block";
+          document.getElementById(
+            "greet"
+          ).innerText = `Xin chào người chơi tài năng "${nameUser}"`;
+        }
+      }
+      let arrayLevel = [
+        { point: 20, velocity: 3, time: 20 },
+        { point: 40, velocity: 6, time: 30 },
+        { point: 60, velocity: 9, time: 40 },
+      ];
+      btn_play.addEventListener("click", function () {
+        let checkbox = document.getElementsByName("level");
+        for (let j = 0; j < checkbox.length; j++) {
+          if (checkbox[j].checked === true) {
+            level.style.display = "none";
+            game.style.display = "block";
+            class Ball {
+              constructor(x, y, r, color, score, dx, dy, time) {
+                this.x = x;
+                this.y = y;
+                this.r = r;
+                this.color = color;
+                this.score = score;
+                this.dx = dx;
+                this.dy = dy;
+                this.time = time;
+              }
+              draw() {
+                ctx.beginPath();
+                ctx.fillStyle = this.color;
+                ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.closePath();
+              }
+              drawBoss() {
+                ctx.beginPath();
+                ctx.fillStyle = this.color;
+                ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.font = "10pt Calibri";
+                ctx.fillStyle = "red";
+                ctx.textAlign = "center";
+                ctx.fillText("EAT", this.x, this.y + 3);
+              }
+              drawScore() {
+                ctx.font = "30pt Calibri";
+                ctx.fillStyle = "black";
+                ctx.fillText(this.score, 80, 380);
+              }
+              drawTime() {
+                ctx.font = "30pt Calibri";
+                ctx.fillStyle = "black";
+                ctx.fillText(this.time, 970, 30);
+              }
+              move() {
+                if (this.x + this.r >= canvas.width || this.x - this.r < 0) {
+                  this.dx = -this.dx;
+                }
+                if (this.y + this.r >= canvas.height || this.y - this.r < 0) {
+                  this.dy = -this.dy;
+                }
+                this.x += this.dx;
+                this.y += this.dy;
+                this.drawBoss();
+                this.drawScore();
+              }
+              crush(ball) {
+                let distance = Math.sqrt(
+                  Math.pow(this.x - ball.x, 2) + Math.pow(this.y - ball.y, 2)
+                );
+                if (distance <= ball.r + this.r) {
+                  return true;
+                }
+                return false;
+              }
+            }
+            function randomPosition(x) {
+              return Math.floor(Math.random() * (x - 8) + 8);
+            }
+            let arrayPoint = [];
+            function drawSmallCircle() {
+              for (let i = 1; i <= arrayLevel[j].point; i++) {
+                let ball = new Ball(
+                  randomPosition(canvas.width),
+                  randomPosition(canvas.height),
+                  5,
+                  "red"
+                );
+                arrayPoint.push(ball);
+                ball.draw();
+              }
+            }
+            drawSmallCircle();
+            let ballBoss = new Ball(
+              20,
+              20,
+              20,
+              "yellow",
+              0,
+              0,
+              0,
+              arrayLevel[j].time
+            );
+            function drawBossCircle() {
+              ballBoss.drawBoss();
+              ballBoss.drawScore();
+              ballBoss.drawTime();
+            }
+            drawBossCircle();
+            let timeout = null;
+            let countAlertLose = 0;
+            let countAlertWin = 0;
+            function start() {
+              console.log(ballBoss.time);
+              if (ballBoss.time <= 0) {
+                clearTimeout(timeout);
+                countAlertLose += 1;
+                if (countAlertLose == 1) {
+                  alert("Hết giờ! Bạn đã thua cuộc. Hãy cố gắng lần sau");
+                }
+                game.style.display = "none";
+                endGame.style.display = "block";
+              } else if (
+                ballBoss.time > -1 &&
+                ballBoss.score == arrayLevel[j].point
+              ) {
+                clearTimeout(timeout);
+                countAlertWin += 1;
+                if (countAlertWin == 1) {
+                  alert("Tuyệt vời! Bạn đã chiến thắng");
+                }
+                game.style.display = "none";
+                endGame.style.display = "block";
+              }
+              timeout = setTimeout(function () {
+                ballBoss.time--;
+                start();
+              }, 1000);
+            }
+            function stop() {
+              clearTimeout(timeout);
+            }
+            let count = 0;
+            addEventListener("keyup", function (e) {
+              if (e.keyCode) {
+                count = count + 1;
+                if (count == 1) {
+                  start();
+                }
+              }
+              if (e.keyCode == 37) {
+                ballBoss.dx = -arrayLevel[j].velocity;
+                ballBoss.dy = 0;
+              }
+              if (e.keyCode == 39) {
+                ballBoss.dx = arrayLevel[j].velocity;
+                ballBoss.dy = 0;
+              }
+              if (e.keyCode == 40) {
+                ballBoss.dx = 0;
+                ballBoss.dy = arrayLevel[j].velocity;
+              }
+              if (e.keyCode == 38) {
+                ballBoss.dx = 0;
+                ballBoss.dy = -arrayLevel[j].velocity;
+              }
+              if (e.keyCode == 13) {
+                ballBoss.dx = 0;
+                ballBoss.dy = 0;
+              }
+            });
+
+            function animate() {
+              requestAnimationFrame(animate);
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ballBoss.move();
+              ballBoss.drawTime();
+              for (let i = 0; i < arrayPoint.length; i++) {
+                arrayPoint[i].draw();
+                if (ballBoss.crush(arrayPoint[i])) {
+                  arrayPoint.splice(i, 1);
+                  new Audio(
+                    "http://dight310.byu.edu/media/audio/FreeLoops.com/5/5/Mouse%20Click%20Fast.wav-23232-Free-Loops.com.mp3"
+                  ).play();
+                  ballBoss.score += 1;
+                  ballBoss.drawScore();
+                  if (
+                    ballBoss.score != arrayLevel[j].point &&
+                    ballBoss.score % 4 == 0
+                  ) {
+                    ballBoss.r += 2;
+                    ballBoss.drawBoss();
+                  } else if (ballBoss.score == arrayLevel[j].point) {
+                    ballBoss.dx = 0;
+                    ballBoss.dy = 0;
+                  }
+                }
+              }
+            }
+            animate();
+
+            btn_restart.addEventListener("click", function () {
+              stop();
+              level.style.display = "block";
+              endGame.style.display = "none";
+            });
+          }
+        }
+      });
+
+      btn_reload.addEventListener("click", function () {
+        window.location.reload();
+      });
+    </script>
+  </body>
+</html>
