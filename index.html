@@ -270,7 +270,7 @@
             let countAlertWin = 0;
             function start() {
               console.log(ballBoss.time);
-              if (ballBoss.time <= 0) {
+              if (ballBoss.time <= -1) {
                 clearTimeout(timeout);
                 countAlertLose += 1;
                 if (countAlertLose == 1) {
